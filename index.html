@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+    <title>The Eternal Garden | A Journey to You</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="https://img.icons8.com/?size=100&id=PWMoLR7WpGdB&format=png&color=000000">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@200;300;400;600&family=Dancing+Script:wght@700&family=Space+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 1. DESIGN SYSTEM & ROOT VARIABLES --- */
+        :root {
+            --deep-forest: #051b11;
+            --mid-forest: #0b3624;
+            --sage: #4b6e4f;
+            --sunset: #f97316;
+            --sunlight: #fbbf24;
+            --petal-pink: #f472b6;
+            --cream: #fefce8;
+            --mist: rgba(255, 255, 255, 0.08);
+            --glass: rgba(5, 27, 17, 0.7);
+            --ui-gold: #d97706;
+        }
+
+        /* --- 2. GLOBAL RESET & BASE STYLES --- */
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%; min-height: 100%;
+            background-color: var(--deep-forest);
+            color: var(--cream);
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        body::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 900; }
+        .cursive { font-family: 'Dancing Script', cursive; }
+
+        /* --- 3. SURREAL BACKGROUND LAYERS --- */
+        .parallax-layer {
+            position: fixed; inset: 0; pointer-events: none; z-index: -1;
+        }
+
+        #mist-canvas {
+            background: linear-gradient(to bottom, transparent, var(--mist), transparent);
+            mix-blend-mode: screen;
+        }
+
+        .sun-glow {
+            position: fixed; top: -10%; right: -10%;
+            width: 60vw; height: 60vw;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
+            border-radius: 50%; z-index: -1;
+        }
+
+        /* --- 4. ANIMATED NATURE ELEMENTS --- */
+        .leaf-particle {
+            position: fixed; pointer-events: none; z-index: 100;
+        }
+
+        .waterfall-segment {
+            position: fixed; left: 10%; top: -100%; width: 2px; height: 200px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.4), transparent);
+            filter: blur(2px); z-index: 0;
+        }
+
+        /* --- 5. UI COMPONENTS (HUD) --- */
+        .hud-top {
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 1.8rem; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            pointer-events: none;
+        }
+
+        .progress-container {
+            pointer-events: auto;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0.8rem; border-radius: 30px;
+            display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .flower-loader {
+            width: 40px; height: 40px; position: relative;
+            padding: 0.8rem 0 0 0.8rem;
+        }
+
+        .petal-loader {
+            position: absolute; width: 10px; height: 10px;
+            background: var(--sunlight); border-radius: 50% 0 50% 0;
+            transform-origin: center;
+        }
+
+        /* --- 6. SECTION SYSTEM --- */
+        section {
+            min-height: 100vh; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 2rem;
+        }
+
+        .content-card {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 40px;
+            padding: clamp(2rem, 8vw, 5rem);
+            max-width: 900px; width: 100%;
+            text-align: center; opacity: 0; transform: translateY(100px);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+        }
+
+        .river-zone {
+            height: 250px; width: 100%; background: rgba(255,255,255,0.03);
+            border-radius: 30px; margin: 2rem 0; position: relative; overflow: hidden;
+            touch-action: none; border: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .stone {
+            position: absolute; cursor: pointer; transition: transform 0.2s;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+        }
+
+        .bird-icon {
+            position: absolute; width: 40px; height: 40px; pointer-events: auto; cursor: grab;
+        }
+
+        /* --- 7. THE FINAL GARDEN --- */
+        #final-garden-overlay {
+            position: fixed; inset: 0; background: var(--deep-forest);
+            z-index: 5000; display: none; opacity: 0; overflow-y: auto;
+        }
+
+        .letter-container {
+            max-width: 700px; margin: 5vh auto; background: #fffdf5;
+            color: #1a2e1a; padding: clamp(2rem, 10vw, 6rem);
+            border-radius: 4px; position: relative; box-shadow: 0 20px 80px rgba(0,0,0,0.4);
+        }
+
+        .letter-container::before {
+            content: ""; position: absolute; inset: 0;
+            border: 2px solid #e5e7eb; margin: 10px; pointer-events: none;
+        }
+
+        .floral-decoration {
+            position: absolute; font-size: 2rem; opacity: 0.15;
+        }
+
+        /* --- 8. ANIMATIONS --- */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .floating { animation: float 4s ease-in-out infinite; }
+
+        .btn-elegant {
+            background: linear-gradient(45deg, var(--sunset), var(--sunlight));
+            color: var(--deep-forest); font-weight: 800;
+            padding: 1.2rem 3.5rem; border-radius: 100px;
+            text-transform: uppercase; letter-spacing: 3px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-top: 2rem; display: inline-block; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-elegant:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 20px 50px rgba(249, 115, 22, 0.5);
+        }
+
+        .btn-disabled {
+            opacity: 0.2; pointer-events: none; filter: grayscale(1);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, var(--sunlight), var(--sunset));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- 9. MOBILE ADAPTATIONS --- */
+        @media (max-width: 768px) {
+            .hud-top { padding: 1rem; }
+            .content-card { padding: 2.5rem 1.5rem; }
+            .letter-container { margin: 2vh 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas class="parallax-layer" id="mist-canvas"></canvas>
+    <div class="sun-glow"></div>
+    <div id="particle-container"></div>
+    
+    <header class="hud-top">
+        <div class="progress-container">
+            <div class="flower-loader" id="sync-icon"></div>
+            <div>
+                <div class="text-[10px] uppercase tracking-widest font-bold text-orange-400">Harmony Level</div>
+                <div class="text-xl font-black" id="sync-percent">0%</div>
+            </div>
+        </div>
+        <div class="text-right glass-panel p-4 rounded-3xl">
+            <div class="text-2xl md:text-4xl font-black text-sunlight italic leading-none" id="dist-val">9,999</div>
+            <div class="text-[8px] py-2 md:text-[10px] uppercase tracking-widest opacity-60">Miles from your Soul</div>
+        </div>
+    </header>
+
+    <main id="main-scroller">
+        
+        <section id="s1">
+            <div class="content-card" id="c1">
+                <span class="text-gradient font-bold tracking-[0.4em] uppercase text-xs mb-6 block">A Soulmate's Journey</span>
+                <h1 class="text-5xl md:text-8xl mb-8">The Eternal <br>Garden</h1>
+                <p class="text-lg md:text-xl leading-relaxed opacity-80 max-w-2xl mx-auto mb-12">
+                    They say distance is the test of how far love can travel. Welcome, <span class="text-sunlight font-bold dynamic-name"></span>—a place where miles don't exist, and every heartbeat is a step closer to you.
+                </p>
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-px h-24 bg-gradient-to-b from-sunlight to-transparent"></div>
+                    <span class="text-[10px] uppercase tracking-[0.2em] animate-pulse">Scroll to Plant the Seed</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="s2">
+            <div class="content-card" id="c2">
+                <h2 class="text-4xl md:text-6xl mb-6">The Fog of Distance</h2>
+                <p class="opacity-70 mb-8">The world tries to dim our connection, <span class="dynamic-name"></span>. Brush it away to see the truth.</p>
+                
+                <div class="relative w-full h-64 bg-emerald-950/40 rounded-3xl overflow-hidden group cursor-crosshair" id="fog-area">
+                    <div class="absolute inset-0 flex items-center justify-center text-sunlight font-black text-2xl z-0 pointer-events-none uppercase">
+                        "I ALWAYS FEEL YOU"
+                    </div>
+                    <canvas id="fog-canvas" class="absolute inset-0 z-10 touch-none"></canvas>
+                </div>
+                <p class="text-[10px] uppercase tracking-widest mt-6 text-orange-400">Wipe the screen to reveal the hidden promise</p>
+            </div>
+        </section>
+
+        <section id="s3">
+            <div class="content-card" id="c3">
+                <h2 class="text-4xl md:text-6xl mb-6 italic">The Flowing River</h2>
+                <p class="opacity-70 mb-10">Our thoughts flow like water. Clear the stones to let our love flow freely to you, <span class="dynamic-name"></span>.</p>
+                
+                <div class="river-zone" id="river-game"></div>
+                
+                <div class="grid grid-cols-2 gap-4 mt-8">
+                    <div class="text-left border-l-2 border-sunlight pl-4">
+                        <div class="text-[10px] uppercase opacity-50">Stones Cleared</div>
+                        <div class="text-2xl font-black" id="stone-count">0 / 12</div>
+                    </div>
+                    <div class="text-right border-r-2 border-orange-500 pr-4">
+                        <div class="text-[10px] uppercase opacity-50">Current Flow</div>
+                        <div class="text-2xl font-black" id="flow-rate">Stagnant</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="s4">
+            <div class="content-card" id="c4">
+                <h2 class="text-4xl md:text-6xl mb-6">The Canopy</h2>
+                <p class="opacity-70 mb-12">The leaves of this forest whisper the things I haven't said yet. Reach into the branches, <span class="dynamic-name"></span>.</p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-6" id="whisper-grid"></div>
+                
+                <p class="text-[10px] uppercase tracking-[0.3em] mt-12 text-sunlight">Find the 3 Golden Whispers</p>
+            </div>
+        </section>
+
+        <section id="s5">
+            <div class="content-card" id="c5">
+                <h2 class="text-4xl md:text-6xl mb-6">Flying Together</h2>
+                <p class="opacity-70 mb-10">If I were a bird, I'd fly every mile just to rest on your window sill. Guide our spirit home.</p>
+                
+                <div class="relative w-full h-80 bg-black/20 rounded-[40px] overflow-hidden border border-white/5" id="bird-game-area">
+                    <div class="bird-icon" id="player-bird">
+                        <svg viewBox="0 0 100 100"><path d="M10 50 Q30 10 50 50 T90 50" fill="none" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/></svg>
+                    </div>
+                    <div class="absolute right-10 top-1/2 -translate-y-1/2 text-4xl" id="bird-target">🌸</div>
+                </div>
+                
+                <p class="text-[10px] uppercase tracking-widest mt-8 text-orange-400">Drag the bird to the bloom</p>
+            </div>
+        </section>
+
+        <section id="s6">
+            <div class="content-card" id="c6">
+                <h2 class="text-4xl md:text-6xl mb-6">The Grove</h2>
+                <p class="opacity-70 mb-10">In the dark of the night, your presence is the light I follow. Collect the glowing fireflies for our path.</p>
+                
+                <div class="night-catch h-64 w-full relative bg-emerald-950 rounded-3xl overflow-hidden" id="firefly-grove"></div>
+                
+                <div class="mt-8 flex justify-center gap-2" id="firefly-score"></div>
+            </div>
+        </section>
+
+        <section id="s7">
+            <div class="content-card" id="c7">
+                <h2 class="text-5xl md:text-7xl mb-8">Perfect Harmony</h2>
+                <p class="text-xl opacity-80 mb-12">The distance has been measured, and the garden is in full bloom. The bridge to your heart is ready.</p>
+                
+                <div id="sync-button-container">
+                    <div id="final-btn" class="btn-elegant btn-disabled">
+                        Open My Heart
+                    </div>
+                </div>
+                
+                <p class="text-xs mt-8 opacity-40 uppercase tracking-widest" id="lock-msg">Achieve 100% Harmony to Unlock</p>
+            </div>
+        </section>
+
+        <div class="h-[30vh]"></div>
+    </main>
+
+    <div id="final-garden-overlay">
+        <div class="py-20 px-4">
+            <div class="letter-container" id="letter">
+                <div class="floral-decoration top-4 left-4">🌿</div>
+                <div class="floral-decoration bottom-4 right-4">🌸</div>
+                <div class="floral-decoration top-1/2 right-4">🌼</div>
+                
+                <h2 class="text-4xl mb-8 cursive text-orange-700">My Dearest Soulmate, <span id="recipient-namee"></span></h2>
+                
+                <div class="space-y-6 text-lg leading-relaxed font-light font-serif">
+                    <p>You’ve navigated the fog, cleared the stones, and found the whispers in the canopy. This journey you just took? It’s exactly how I feel about us every single day.</p>
+                    <p>The 9,999 miles don’t feel like a barrier when I talk to you; they feel like a garden we are tending together. Each text, each laugh, and each "I miss you" is a new flower blooming between our worlds. 🌷</p>
+                    <p>I built this digital glade to show you, <span class="font-bold dynamic-name"></span>, that no matter how vast the world is, my heart has a direct path to yours. You are the sunlight ☀️ in my forest, the water 💧 in my stream, and the peace 🍃 in my soul.</p>
+                    <p class="text-2xl font-bold mt-12 text-green-800 italic">
+                        Distance is just a number. Our bond is the destination. 🧡
+                    </p>
+                </div>
+                
+                <div class="mt-16 pt-8 border-t border-gray-200">
+                    <p class="cursive text-3xl text-orange-600">Always yours, ♾️</p>
+                    <p class="text-sm uppercase tracking-widest mt-2 opacity-50">Your Favorite Human</p>
+                </div>
+
+                <div class="mt-12 flex justify-center">
+                    <button onclick="location.reload()" class="text-xs uppercase font-bold tracking-widest border-b-2 border-orange-200 hover:border-orange-500 transition-all">
+                        Return to the Beginning
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 14px; z-index: 100000; background: rgba(5, 27, 17, 0.85); backdrop-filter: blur(12px); border-top: 1px solid rgba(251, 191, 36, 0.3); box-shadow: 0 -5px 25px rgba(0,0,0,0.4);">
+        <span style="color: rgba(254, 252, 232, 0.8); font-family: 'Playfair Display', serif; font-size: 14px; letter-spacing: 1px;">
+            Made with ❤️ by 
+        </span>
+        <a href="https://github.com/Mayborg121" target="_blank" rel="noopener" 
+           style="color: #fbbf24; text-decoration: none; font-family: 'Playfair Display', serif; font-weight: 900; font-size: 16px; text-shadow: 0 0 12px rgba(251, 191, 36, 0.4); margin-left: 5px;">
+            MAYBORG
+        </a>
+    </footer>
+
+    <script>
+        /* --- 1. STATE MANAGEMENT --- */
+        const STATE = {
+            harmony: 0,
+            distance: 9999,
+            stones: 0,
+            whispers: 0,
+            fireflies: 0,
+            isRevealed: false,
+            name: new URLSearchParams(window.location.search).get('n') || "Special Person"
+        };
+
+        /* --- 2. INITIALIZATION --- */
+        window.addEventListener('DOMContentLoaded', () => {
+            initPersonalization();
+            initGSAP();
+            initHUD();
+            initFogStage();
+            initRiverStage();
+            initWhisperStage();
+            initBirdStage();
+            initFireflyStage();
+            createWaterfalls();
+            animateBackground();
+        });
+
+        /* --- PERSONALIZATION LOGIC --- */
+        function initPersonalization() {
+            // Set the name in the letter heading
+            document.getElementById('recipient-namee').innerText = STATE.name;
+            
+            // Set name in all spans with class 'dynamic-name'
+            const nameSpans = document.querySelectorAll('.dynamic-name');
+            nameSpans.forEach(span => {
+                span.innerText = STATE.name;
+            });
+        }
+
+        /* --- 3. HUD LOGIC --- */
+        function initHUD() {
+            const loader = document.getElementById('sync-icon');
+            for(let i=0; i<8; i++) {
+                const p = document.createElement('div');
+                p.className = 'petal-loader';
+                gsap.set(p, { rotation: i * 45, x: Math.cos(i*45)*10, y: Math.sin(i*45)*10 });
+                loader.appendChild(p);
+            }
+        }
+
+        function updateHarmony(amt) {
+            STATE.harmony = Math.min(100, STATE.harmony + amt);
+            document.getElementById('sync-percent').innerText = Math.floor(STATE.harmony) + '%';
+            
+            gsap.to('.petal-loader', {
+                scale: 1 + (STATE.harmony / 50),
+                backgroundColor: STATE.harmony > 50 ? '#f97316' : '#fbbf24',
+                duration: 0.5
+            });
+
+            if(STATE.harmony >= 100) {
+                const btn = document.getElementById('final-btn');
+                btn.classList.remove('btn-disabled');
+                document.getElementById('lock-msg').innerText = "CONNECTION ESTABLISHED";
+                document.getElementById('lock-msg').classList.add('text-sunlight', 'font-bold');
+            }
+        }
+
+        /* --- 4. STAGE: FOG (Stage 2) --- */
+        function initFogStage() {
+            const canvas = document.getElementById('fog-canvas');
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+
+            function resize() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                ctx.fillStyle = '#0b3624';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalCompositeOperation = 'destination-out';
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function scratch(e) {
+                if(!drawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 40, 0, Math.PI * 2);
+                ctx.fill();
+                updateHarmony(0.2);
+            }
+
+            canvas.addEventListener('mousedown', () => drawing = true);
+            canvas.addEventListener('touchstart', (e) => { drawing = true; scratch(e); });
+            window.addEventListener('mouseup', () => drawing = false);
+            window.addEventListener('touchend', () => drawing = false);
+            canvas.addEventListener('mousemove', scratch);
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); }, {passive: false});
+        }
+
+        /* --- 5. STAGE: RIVER (Stage 3) --- */
+        function initRiverStage() {
+            const river = document.getElementById('river-game');
+            const total = 12;
+            for(let i=0; i<total; i++) {
+                const s = document.createElement('div');
+                s.className = 'stone';
+                s.innerHTML = `<svg width="50" height="35" viewBox="0 0 50 35"><ellipse cx="25" cy="17" rx="20" ry="12" fill="#2d2d2d" /><ellipse cx="22" cy="14" rx="15" ry="8" fill="#4d4d4d" /></svg>`;
+                gsap.set(s, { left: 10 + (Math.random() * 80) + '%', top: 10 + (Math.random() * 70) + '%', rotation: Math.random() * 360 });
+                const clear = () => {
+                    if(s.dataset.used) return;
+                    s.dataset.used = true;
+                    gsap.to(s, { y: 100, opacity: 0, scale: 0.5, duration: 0.8, ease: "back.in" });
+                    STATE.stones++;
+                    document.getElementById('stone-count').innerText = `${STATE.stones} / ${total}`;
+                    updateHarmony(4);
+                    if(STATE.stones >= total) document.getElementById('flow-rate').innerText = "Vibrant";
+                };
+                s.addEventListener('mouseenter', clear);
+                s.addEventListener('touchstart', clear);
+                river.appendChild(s);
+            }
+        }
+
+        /* --- 6. STAGE: WHISPERS (Stage 4) --- */
+        function initWhisperStage() {
+            const grid = document.getElementById('whisper-grid');
+            const phrases = [`Thinking of you, ${STATE.name}`, "Distance is just space", "Your laugh is my song", "GOLDEN: I love you", "GOLDEN: Soulmate found", "GOLDEN: Forever mine", "I miss your voice", "Soon, we meet", "Always in my heart"];
+            phrases.forEach(text => {
+                const item = document.createElement('div');
+                item.className = 'p-6 bg-white/5 border border-white/10 rounded-2xl cursor-pointer hover:bg-white/10 transition-all text-xs text-center flex items-center justify-center h-24';
+                item.innerHTML = `<span class="opacity-0 transition-opacity duration-500">${text}</span>`;
+                item.onclick = () => {
+                    const span = item.querySelector('span');
+                    if(span.style.opacity === '1') return;
+                    span.style.opacity = '1';
+                    if(text.includes("GOLDEN")) {
+                        item.classList.add('border-sunlight', 'bg-sunlight/10');
+                        STATE.whispers++;
+                        updateHarmony(10);
+                    } else { updateHarmony(1); }
+                };
+                grid.appendChild(item);
+            });
+        }
+
+        /* --- 7. STAGE: BIRD (Stage 5) --- */
+        function initBirdStage() {
+            Draggable.create("#player-bird", {
+                bounds: "#bird-game-area",
+                onDrag: function() {
+                    const target = document.getElementById('bird-target').getBoundingClientRect();
+                    const bird = document.getElementById('player-bird').getBoundingClientRect();
+                    const dist = Math.hypot(target.x - bird.x, target.y - bird.y);
+                    if(dist < 50 && !this.completed) {
+                        this.completed = true;
+                        gsap.to("#bird-target", { scale: 3, opacity: 0, duration: 1 });
+                        updateHarmony(15);
+                        document.getElementById('bird-target').innerText = "💖";
+                    }
+                }
+            });
+        }
+
+        /* --- 8. STAGE: FIREFLIES (Stage 6) --- */
+        function initFireflyStage() {
+            const grove = document.getElementById('firefly-grove');
+            for(let i=0; i<8; i++) {
+                const f = document.createElement('div');
+                f.className = 'absolute w-3 h-3 bg-sunlight rounded-full cursor-pointer';
+                f.style.boxShadow = "0 0 15px #fbbf24, 0 0 30px #fbbf24";
+                grove.appendChild(f);
+
+                gsap.to(f, { boxShadow: "0 0 5px #fbbf24, 0 0 10px #fbbf24", duration: 1 + Math.random(), repeat: -1, yoyo: true });
+
+                const move = () => {
+                    gsap.to(f, {
+                        x: Math.random() * (grove.offsetWidth - 20),
+                        y: Math.random() * (grove.offsetHeight - 20),
+                        duration: 3 + Math.random() * 2,
+                        ease: "sine.inOut",
+                        onComplete: move
+                    });
+                };
+                move();
+
+                f.onclick = () => {
+                    gsap.to(f, { scale: 2, opacity: 0, duration: 0.3, onComplete: () => f.remove() });
+                    STATE.fireflies++;
+                    updateHarmony(5);
+                    const dot = document.createElement('div');
+                    dot.className = 'w-3 h-3 bg-sunlight rounded-full';
+                    dot.style.boxShadow = "0 0 10px #fbbf24";
+                    document.getElementById('firefly-score').appendChild(dot);
+                };
+            }
+        }
+
+        /* --- 9. GSAP CORE ENGINE --- */
+        function initGSAP() {
+            gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+            ScrollTrigger.create({
+                trigger: "body", start: "top top", end: "bottom bottom",
+                onUpdate: (self) => {
+                    const p = self.progress;
+                    STATE.distance = Math.floor(9999 * (1 - p));
+                    document.getElementById('dist-val').innerText = STATE.distance.toLocaleString();
+                }
+            });
+            gsap.utils.toArray('.content-card').forEach(card => {
+                gsap.to(card, {
+                    scrollTrigger: { trigger: card, start: "top 80%", toggleActions: "play none none reverse" },
+                    opacity: 1, y: 0, duration: 1.5, ease: "power4.out"
+                });
+            });
+        }
+
+        /* --- 10. VISUAL POLISH --- */
+        function createWaterfalls() {
+            for(let i=0; i<5; i++) {
+                const w = document.createElement('div');
+                w.className = 'waterfall-segment';
+                w.style.left = (10 + i * 20) + '%';
+                document.body.appendChild(w);
+                gsap.to(w, { y: window.innerHeight + 500, duration: 1.5 + Math.random(), repeat: -1, ease: "none", delay: Math.random() * 2 });
+            }
+        }
+
+        function animateBackground() {
+            const canvas = document.getElementById('mist-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(255,255,255,0.01)';
+                for(let i=0; i<10; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.sin(Date.now()*0.001 + i)*100 + (canvas.width/2), Math.cos(Date.now()*0.001 + i)*100 + (canvas.height/2), 200, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function spawnLeaf() {
+            const container = document.getElementById('particle-container');
+            const l = document.createElement('div');
+            l.className = 'leaf-particle';
+            l.innerHTML = Math.random() > 0.5 ? '🍃' : '🌸';
+            l.style.fontSize = (Math.random() * 15 + 10) + 'px';
+            container.appendChild(l);
+            const startX = Math.random() * window.innerWidth;
+            gsap.set(l, { x: startX, y: -50, rotation: Math.random() * 360 });
+            gsap.to(l, { y: window.innerHeight + 50, x: startX + (Math.random() - 0.5) * 400, rotation: 720, duration: 10 + Math.random() * 5, ease: "none", onComplete: () => l.remove() });
+        }
+        setInterval(spawnLeaf, 2000);
+
+        function revealFinal() {
+            const overlay = document.getElementById('final-garden-overlay');
+            overlay.style.display = 'block';
+            gsap.to(window, { scrollTo: 0, duration: 0.1 });
+            document.body.style.overflow = 'hidden';
+
+            const tl = gsap.timeline();
+            tl.to("main, header", { opacity: 0, duration: 1 }) 
+              .to(overlay, { opacity: 1, duration: 1.5 }, "-=0.5") 
+              .from("#letter", { 
+                  y: 100, 
+                  scale: 0.9, 
+                  opacity: 0, 
+                  duration: 2, 
+                  ease: "power4.out" 
+              });
+        }
+        document.getElementById('final-btn').addEventListener('click', revealFinal);
+    </script>
+</body>
+</html>
