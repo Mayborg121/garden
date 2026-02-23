@@ -31,9 +31,9 @@ To target a specific recipient and see their name flourish within the garden, yo
 
 <br>
 
-`mayborg121.github.io/eternal-garden`**`?n=RecipientName`**
+`mayborg121.github.io/garden`**`?n=RecipientName`**
 
-`Example : `**`mayborg121.github.io/eternal-garden?n=Soulmate`**
+`Example : `**`mayborg121.github.io/garden?n=Soulmate`**
 
 <p>
   <sub><i>The garden will dynamically rewrite its whispers and the final letter to address the specified user.</i></sub>
