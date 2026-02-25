@@ -503,7 +503,7 @@
         /* --- 6. STAGE: WHISPERS (Stage 4) --- */
         function initWhisperStage() {
             const grid = document.getElementById('whisper-grid');
-            const phrases = [`Thinking of you, ${STATE.name}`, "Distance is just space", "Your laugh is my song", "GOLDEN: I Love you", "Golden: Soulmate Found", "GOLDEN: Forever mine", "I miss your voice", "I wish, we meet", "Always in my heart"];
+            const phrases = [`Thinking of you, ${STATE.name}`, "Distance is just space", "Your laugh is my song", "GOLDEN: I Love you", "GOLDEN: Soulmate Found", "GOLDEN: Forever mine", "I miss your voice, ${STATE.name}", "I wish, we meet", "Always in my heart"];
             phrases.forEach(text => {
                 const item = document.createElement('div');
                 item.className = 'p-6 bg-white/5 border border-white/10 rounded-2xl cursor-pointer hover:bg-white/10 transition-all text-xs text-center flex items-center justify-center h-24';
